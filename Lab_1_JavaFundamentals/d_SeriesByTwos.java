@@ -45,8 +45,8 @@ class ByTwos implements Series {
 public class d_SeriesByTwos {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        Series s;               // reference of interface
-        s = new ByTwos();       // object of implementing class
+        Series s;              
+        s = new ByTwos();      
         System.out.println("Which number to start from?");
         int n = sc.nextInt();
         s.setStart(n);
