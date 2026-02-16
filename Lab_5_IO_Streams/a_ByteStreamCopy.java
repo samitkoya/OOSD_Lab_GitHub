@@ -10,8 +10,8 @@ import java.io.IOException;
 public class a_ByteStreamCopy {
     public static void main(String[] args) {
 
-        String sourceFile = "source.txt";
-        String destinationFile = "destination.txt";
+        String sourceFile = "Files(for_IO)/source.txt";
+        String destinationFile = "Files(for_IO)/destination.txt";
 
         try (FileInputStream fis = new FileInputStream(sourceFile);
                 FileOutputStream fos = new FileOutputStream(destinationFile)) {

@@ -9,8 +9,8 @@ import java.io.IOException;
 public class b_CharacterStreamCopy {
     public static void main(String[] args) {
 
-        String sourceFile = "source.txt";
-        String destinationFile = "destination.txt";
+        String sourceFile = "Files(for_IO)/source.txt";
+        String destinationFile = "Files(for_IO)/destination.txt";
 
         try (FileReader fr = new FileReader(sourceFile);
                 FileWriter fw = new FileWriter(destinationFile)) {
