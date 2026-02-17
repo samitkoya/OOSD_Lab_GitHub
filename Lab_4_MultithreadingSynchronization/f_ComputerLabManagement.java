@@ -33,11 +33,11 @@ class ComputerLab {
 }
 
 // Student thread
-class Student extends Thread {
+class Student1 extends Thread {
     private ComputerLab computerLab;
     private String studentName;
 
-    public Student(ComputerLab computerLab, String name) {
+    public Student1(ComputerLab computerLab, String name) {
         this.computerLab = computerLab;
         this.studentName = name;
     }
@@ -59,10 +59,10 @@ public class f_ComputerLabManagement {
 
         ComputerLab computerLab = new ComputerLab(2);
 
-        Student s1 = new Student(computerLab, "Student-1");
-        Student s2 = new Student(computerLab, "Student-2");
-        Student s3 = new Student(computerLab, "Student-3");
-        Student s4 = new Student(computerLab, "Student-4");
+        Student1 s1 = new Student1(computerLab, "Student-1");
+        Student1 s2 = new Student1(computerLab, "Student-2");
+        Student1 s3 = new Student1(computerLab, "Student-3");
+        Student1 s4 = new Student1(computerLab, "Student-4");
 
         s1.start();
         s2.start();
