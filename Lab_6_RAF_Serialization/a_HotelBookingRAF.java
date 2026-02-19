@@ -1,27 +1,16 @@
-/* Design and implement a Java application to manage hotel room bookings where room records
-are stored in a file and accessed using RandomAccessFile. Each room record is of fixed length,
-enabling direct (random) access to any room's booking information without reading the file
-sequentially. The system supports adding rooms, viewing room details, and updating booking
-status by directly navigating to the required record position using seek().
-*/
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Scanner;
 
 public class a_HotelBookingRAF {
 
     static final String FILE_NAME = "hotel_rooms.dat";
-
     static final int ROOM_TYPE_LENGTH = 20;
-    static final int RECORD_SIZE = 4 + (ROOM_TYPE_LENGTH * 2) + 8 + 1; // 53 bytes
+    static final int RECORD_SIZE = 4 + (ROOM_TYPE_LENGTH * 2) + 8 + 1;
 
     static void writeFixedString(RandomAccessFile raf, String text) throws IOException {
         for (int i = 0; i < ROOM_TYPE_LENGTH; i++) {
-            if (i < text.length()) {
-                raf.writeChar(text.charAt(i));
-            } else {
-                raf.writeChar(' ');
-            }
+            raf.writeChar(i < text.length() ? text.charAt(i) : ' ');
         }
     }
 
@@ -41,21 +30,34 @@ public class a_HotelBookingRAF {
         return (int) (raf.length() / RECORD_SIZE);
     }
 
-    static void addRoom(int roomNumber, String roomType, double pricePerNight, boolean isBooked) {
+    static void addRoom(Scanner sc) {
+        System.out.print("Enter Room Number   : ");
+        int roomNumber = sc.nextInt();
+        sc.nextLine();
+        System.out.print("Enter Room Type     : ");
+        String roomType = sc.nextLine();
+        System.out.print("Enter Price/Night   : ");
+        double price = sc.nextDouble();
+        System.out.print("Is Booked (true/false): ");
+        boolean isBooked = sc.nextBoolean();
+
         try (RandomAccessFile raf = new RandomAccessFile(FILE_NAME, "rw")) {
             int count = recordCount(raf);
             seekToRecord(raf, count);
             raf.writeInt(roomNumber);
             writeFixedString(raf, roomType);
-            raf.writeDouble(pricePerNight);
+            raf.writeDouble(price);
             raf.writeBoolean(isBooked);
             System.out.println("Room " + roomNumber + " added successfully.");
         } catch (IOException e) {
-            System.err.println("Error adding room: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
-    static void displayRoom(int roomNumber) {
+    static void displayRoom(Scanner sc) {
+        System.out.print("Enter Room Number to view: ");
+        int roomNumber = sc.nextInt();
+
         try (RandomAccessFile raf = new RandomAccessFile(FILE_NAME, "r")) {
             int count = recordCount(raf);
             boolean found = false;
@@ -78,15 +80,19 @@ public class a_HotelBookingRAF {
                 }
             }
 
-            if (!found) {
+            if (!found)
                 System.out.println("Room " + roomNumber + " not found.");
-            }
         } catch (IOException e) {
-            System.err.println("Error reading room: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
-    static void updateBookingStatus(int roomNumber, boolean newStatus) {
+    static void updateBookingStatus(Scanner sc) {
+        System.out.print("Enter Room Number to update: ");
+        int roomNumber = sc.nextInt();
+        System.out.print("New Status (true = Booked, false = Available): ");
+        boolean newStatus = sc.nextBoolean();
+
         try (RandomAccessFile raf = new RandomAccessFile(FILE_NAME, "rw")) {
             int count = recordCount(raf);
             boolean found = false;
@@ -96,21 +102,20 @@ public class a_HotelBookingRAF {
                 int num = raf.readInt();
 
                 if (num == roomNumber) {
-                    long booleanOffset = (long) slot * RECORD_SIZE + 4 + (ROOM_TYPE_LENGTH * 2) + 8;
-                    raf.seek(booleanOffset);
+                    long offset = (long) slot * RECORD_SIZE + 4 + (ROOM_TYPE_LENGTH * 2) + 8;
+                    raf.seek(offset);
                     raf.writeBoolean(newStatus);
-                    System.out.println("Room " + roomNumber + " status updated to: "
-                            + (newStatus ? "Booked" : "Available"));
+                    System.out.println(
+                            "Room " + roomNumber + " status updated to: " + (newStatus ? "Booked" : "Available"));
                     found = true;
                     break;
                 }
             }
 
-            if (!found) {
+            if (!found)
                 System.out.println("Room " + roomNumber + " not found.");
-            }
         } catch (IOException e) {
-            System.err.println("Error updating room: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
@@ -119,7 +124,7 @@ public class a_HotelBookingRAF {
             int count = recordCount(raf);
 
             if (count == 0) {
-                System.out.println("No rooms available in the system.");
+                System.out.println("No rooms available.");
                 return;
             }
 
@@ -135,42 +140,39 @@ public class a_HotelBookingRAF {
                 System.out.println("Room Type     : " + type);
                 System.out.println("Price/Night   : Rs." + price);
                 System.out.println("Booking Status: " + (booked ? "Booked" : "Available"));
-                System.out.println("--------------------------------------");
+                System.out.println(" ");
             }
         } catch (IOException e) {
-            System.err.println("Error displaying rooms: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
     public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Hotel Room Booking System (RandomAccessFile) :-");
+        System.out.println("Record size: " + RECORD_SIZE + " bytes per room");
 
-        System.out.println(" Hotel Room Booking System (RandomAccessFile)");
-        System.out.println("Record size: " + RECORD_SIZE + " bytes per room\n");
+        boolean running = true;
+        while (running) {
+            System.out.println("\n1. Add Room");
+            System.out.println("2. View Room");
+            System.out.println("3. Update Booking Status");
+            System.out.println("4. View All Rooms");
+            System.out.println("5. Exit");
+            System.out.print("Enter choice: ");
+            int choice = sc.nextInt();
 
-        // Add rooms
-        addRoom(101, "Single", 1500.0, false);
-        addRoom(102, "Double", 2500.0, false);
-        addRoom(103, "Suite", 5000.0, true);
-        addRoom(104, "Deluxe", 3500.0, false);
+            switch (choice) {
+                case 1 -> addRoom(sc);
+                case 2 -> displayRoom(sc);
+                case 3 -> updateBookingStatus(sc);
+                case 4 -> displayAllRooms();
+                case 5 -> running = false;
+                default -> System.out.println("Invalid choice.");
+            }
+        }
 
-        // Display all rooms
-        displayAllRooms();
-
-        // Display a specific room
-        System.out.println("\nFetching details for Room 102 :-");
-        displayRoom(102);
-
-        // Update booking status
-        System.out.println("\nBooking Room : 102");
-        updateBookingStatus(102, true);
-
-        System.out.println("\nVacating Room : 103");
-        updateBookingStatus(103, false);
-
-        System.out.println("\nAll rooms after booking updates :- ");
-        displayAllRooms();
-
-        System.out.println("\nFetching details for Room 999:-");
-        displayRoom(999);
+        sc.close();
+        System.out.println("Exiting...");
     }
 }

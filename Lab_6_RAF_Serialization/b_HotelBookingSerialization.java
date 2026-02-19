@@ -1,9 +1,3 @@
-/* Design and implement a Java application for managing hotel room bookings where room booking
-details are stored as serialized objects in a file. The application uses serialization to save
-hotel room booking objects permanently and deserialization to retrieve them. This approach
-simulates real-world object persistence without using a database.
-*/
-
 import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,6 +7,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 class Room implements Serializable {
 
@@ -47,82 +42,85 @@ public class b_HotelBookingSerialization {
     static final String FILE_NAME = "hotel_rooms_serialized.dat";
 
     static void saveRooms(List<Room> rooms) {
-        try (FileOutputStream fos = new FileOutputStream(FILE_NAME);
-                ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME))) {
             for (Room room : rooms) {
                 oos.writeObject(room);
             }
-            System.out.println("Rooms saved successfully to file.");
-
+            System.out.println("Rooms saved to file.");
         } catch (IOException e) {
-            System.err.println("Error saving rooms: " + e.getMessage());
+            System.err.println("Error saving: " + e.getMessage());
         }
     }
 
     static List<Room> loadRooms() {
         List<Room> rooms = new ArrayList<>();
-
-        try (FileInputStream fis = new FileInputStream(FILE_NAME);
-                ObjectInputStream ois = new ObjectInputStream(fis)) {
-
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_NAME))) {
             while (true) {
                 try {
-                    Room room = (Room) ois.readObject();
-                    rooms.add(room);
+                    rooms.add((Room) ois.readObject());
                 } catch (EOFException e) {
                     break;
                 }
             }
-
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Error loading rooms: " + e.getMessage());
+            System.err.println("Error loading: " + e.getMessage());
         }
-
         return rooms;
     }
 
-    static void displayAllRooms() {
+    static void addRoom(Scanner sc) {
+        System.out.print("Enter Room Number   : ");
+        int roomNumber = sc.nextInt();
+        sc.nextLine();
+        System.out.print("Enter Room Type     : ");
+        String roomType = sc.nextLine();
+        System.out.print("Enter Price/Night   : ");
+        double price = sc.nextDouble();
+        sc.nextLine();
+        System.out.print("Is Booked (yes/no)  : ");
+        boolean isBooked = sc.nextLine().equalsIgnoreCase("yes");
+        String guestName = "";
+        if (isBooked) {
+            System.out.print("Enter Guest Name    : ");
+            guestName = sc.nextLine();
+        }
+
         List<Room> rooms = loadRooms();
-
-        if (rooms.isEmpty()) {
-            System.out.println("No rooms available in the system.");
-            return;
-        }
-
-        System.out.println("\n========== All Room Details ==========");
-        for (Room room : rooms) {
-            System.out.println(room);
-            System.out.println("--");
-        }
+        rooms.add(new Room(roomNumber, roomType, price, isBooked, guestName));
+        saveRooms(rooms);
+        System.out.println("Room " + roomNumber + " added successfully.");
     }
 
-    static void searchRoom(int roomNumber) {
+    static void searchRoom(Scanner sc) {
+        System.out.print("Enter Room Number to search: ");
+        int roomNumber = sc.nextInt();
         List<Room> rooms = loadRooms();
         boolean found = false;
 
         for (Room room : rooms) {
             if (room.roomNumber == roomNumber) {
-                System.out.println("\n Room Found ");
-                System.out.println(room);
+                System.out.println("\nRoom Found :-\n" + room);
                 found = true;
                 break;
             }
         }
 
-        if (!found) {
+        if (!found)
             System.out.println("Room " + roomNumber + " not found.");
+    }
+
+    static void updateBookingStatus(Scanner sc) {
+        System.out.print("Enter Room Number to update: ");
+        int roomNumber = sc.nextInt();
+        sc.nextLine();
+        System.out.print("New Status (yes = Booked, no = Available): ");
+        boolean newStatus = sc.nextLine().equalsIgnoreCase("yes");
+        String guestName = "";
+        if (newStatus) {
+            System.out.print("Enter Guest Name: ");
+            guestName = sc.nextLine();
         }
-    }
 
-    static void addRoom(Room newRoom) {
-        List<Room> rooms = loadRooms();
-        rooms.add(newRoom);
-        saveRooms(rooms);
-        System.out.println("Room " + newRoom.roomNumber + " added successfully.");
-    }
-
-    static void updateBookingStatus(int roomNumber, boolean newStatus, String guestName) {
         List<Room> rooms = loadRooms();
         boolean found = false;
 
@@ -137,45 +135,52 @@ public class b_HotelBookingSerialization {
 
         if (found) {
             saveRooms(rooms);
-            System.out.println("Room " + roomNumber + " status updated to: "
-                    + (newStatus ? "Booked" : "Available"));
+            System.out.println("Room " + roomNumber + " status updated to: " + (newStatus ? "Booked" : "Available"));
         } else {
             System.out.println("Room " + roomNumber + " not found.");
         }
     }
 
+    static void displayAllRooms() {
+        List<Room> rooms = loadRooms();
+
+        if (rooms.isEmpty()) {
+            System.out.println("No rooms available.");
+            return;
+        }
+
+        System.out.println("\n========== All Room Details ==========");
+        for (Room room : rooms) {
+            System.out.println(room);
+            System.out.println("--------------------------------------");
+        }
+    }
+
     public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("=== Hotel Room Booking System (Serialization) ===");
 
-        System.out.println(" Hotel Room Booking System (Serialization) :-\n");
+        boolean running = true;
+        while (running) {
+            System.out.println("\n1. Add Room");
+            System.out.println("2. Search Room");
+            System.out.println("3. Update Booking Status");
+            System.out.println("4. View All Rooms");
+            System.out.println("5. Exit");
+            System.out.print("Enter choice: ");
+            int choice = sc.nextInt();
 
-        List<Room> initialRooms = new ArrayList<>();
-        initialRooms.add(new Room(101, "Single", 1500.0, false, ""));
-        initialRooms.add(new Room(102, "Double", 2500.0, false, ""));
-        initialRooms.add(new Room(103, "Suite", 5000.0, true, "Rajesh Kumar"));
-        initialRooms.add(new Room(104, "Deluxe", 3500.0, false, ""));
+            switch (choice) {
+                case 1 -> addRoom(sc);
+                case 2 -> searchRoom(sc);
+                case 3 -> updateBookingStatus(sc);
+                case 4 -> displayAllRooms();
+                case 5 -> running = false;
+                default -> System.out.println("Invalid choice.");
+            }
+        }
 
-        System.out.println(" Saving initial rooms to file ");
-        saveRooms(initialRooms);
-
-        System.out.println("\n Displaying all rooms (loaded from file) :- ");
-        displayAllRooms();
-
-        System.out.println("\n Searching for Room 102 :- ");
-        searchRoom(102);
-
-        System.out.println("\n Booking Room 102 for guest Priya Sharma :- ");
-        updateBookingStatus(102, true, "Priya Sharma");
-
-        System.out.println("\n Vacating Room 103 :- ");
-        updateBookingStatus(103, false, "");
-
-        System.out.println("\n Adding New Room 105 :- ");
-        addRoom(new Room(105, "Presidential", 10000.0, false, ""));
-
-        System.out.println("\n All rooms after updates :- ");
-        displayAllRooms();
-
-        System.out.println("\n Searching for Room 999 :- ");
-        searchRoom(999);
+        sc.close();
+        System.out.println("Exiting...");
     }
 }
