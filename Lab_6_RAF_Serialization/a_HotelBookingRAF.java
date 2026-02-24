@@ -1,3 +1,12 @@
+/*
+Design a Java hotel booking system using `RandomAccessFile` with fixed-length records containing 
+Room Number (int), Room Type (20-char String), Price per Night (double), and Booking Status (boolean).
+Use `seek()` to navigate directly to any record by position without sequential reading. 
+Implement three operations: add new rooms, display a specific room's details by room number,
+and update booking status (book/vacate). Ensure data is read and written in identical sequence/format
+for consistency. Close the file after every operation.
+*/
+
 import java.io.*;
 import java.util.Scanner;
 
@@ -27,12 +36,12 @@ public class a_HotelBookingRAF {
         double price = raf.readDouble();
         boolean booked = raf.readBoolean();
 
-        System.out.println("----------------------------------");
+        System.out.println(" ");
         System.out.println("Room Number   : " + roomNumber);
         System.out.println("Room Type     : " + roomType.toString().trim());
         System.out.println("Price/Night   : Rs. " + price);
         System.out.println("Booking Status: " + (booked ? "Booked" : "Available"));
-        System.out.println("----------------------------------");
+        System.out.println(" ");
     }
 
     static int getTotalRecords(RandomAccessFile raf) throws IOException {
@@ -105,7 +114,7 @@ public class a_HotelBookingRAF {
         int choice;
 
         do {
-            System.out.println("\n===== Hotel Room Booking System (RandomAccessFile) =====");
+            System.out.println("\n - Hotel Room Booking System (RandomAccessFile) - ");
             System.out.println("1. Add Room");
             System.out.println("2. Display Room Details");
             System.out.println("3. Book a Room");

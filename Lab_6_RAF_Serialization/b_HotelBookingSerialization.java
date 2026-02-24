@@ -1,3 +1,12 @@
+/*
+Design a Java hotel booking system using object serialization where a `Room` class 
+(implementing `Serializable`) stores Room Number, Room Type, Price per Night, Booking Status,
+and Guest Name. Serialize room objects to a file for persistent storage and deserialize them
+to display all rooms or search by room number. Support booking status updates by deserializing 
+all objects, modifying the target room, and re-serializing the entire list back to the file. 
+Handle `IOException` and `ClassNotFoundException` appropriately throughout.
+*/
+
 import java.io.*;
 import java.util.*;
 
@@ -92,9 +101,9 @@ public class b_HotelBookingSerialization {
         }
         System.out.println("\n===== All Room Details =====");
         for (Room r : rooms) {
-            System.out.println("----------------------------------");
+            System.out.println(" ");
             System.out.println(r);
-            System.out.println("----------------------------------");
+            System.out.println(" ");
         }
     }
 
@@ -104,9 +113,9 @@ public class b_HotelBookingSerialization {
         for (Room r : rooms) {
             if (r.getRoomNumber() == roomNumber) {
                 System.out.println("\nRoom found:");
-                System.out.println("----------------------------------");
+                System.out.println(" ");
                 System.out.println(r);
-                System.out.println("----------------------------------");
+                System.out.println(" ");
                 return;
             }
         }
@@ -139,7 +148,7 @@ public class b_HotelBookingSerialization {
         int choice;
 
         do {
-            System.out.println("\n===== Hotel Room Booking System (Serialization) =====");
+            System.out.println("\n - Hotel Room Booking System (Serialization) - ");
             System.out.println("1. Add Room");
             System.out.println("2. Display All Rooms");
             System.out.println("3. Search Room by Room Number");
