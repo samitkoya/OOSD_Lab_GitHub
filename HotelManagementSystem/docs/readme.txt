@@ -76,12 +76,13 @@ cd "C:\Users\Samit Reddy\Downloads\HME"
 
 Then **compile** (replace the JavaFX path with yours):
 ```powershell
-javac --module-path "C:\javafx-sdk-21.0.7\lib" --add-modules javafx.controls,javafx.fxml -d out src\hotel\*.java
+javac --module-path "C:\Programming\JavaFX\javafx-sdk-21.0.10\lib" --add-modules javafx.controls,javafx.fxml -d out src\hotel\*.java
+
 ```
 
 Then **run**:
 ```powershell
-java --module-path "C:\javafx-sdk-21.0.7\lib" --add-modules javafx.controls,javafx.fxml -cp out hotel.Main
+java --module-path "C:\Programming\JavaFX\javafx-sdk-21.0.10\lib" --add-modules javafx.controls,javafx.fxml -cp out hotel.Main
 ```
 
 ---
