@@ -165,6 +165,19 @@ public class HotelManager {
         return String.format("✔ Added %s (₹%.2f) to %s's bill.", serviceName, cost, customer.getName());
     }
 
+    public String addServiceByRoom(int roomNumber, String serviceName, double cost) {
+        Booking booking = bookings.get(roomNumber);
+        if (booking == null) {
+            return "Error: Room " + roomNumber + " is not currently booked.";
+        }
+        
+        Customer customer = findCustomer(booking.getCustomerId());
+        booking.addService(cost);
+        
+        String name = (customer != null) ? customer.getName() : "Guest";
+        return String.format("✔ Added %s (₹%.2f) to Room %d (%s).", serviceName, cost, roomNumber, name);
+    }
+
     public String checkout(String customerId) {
         Customer customer = findCustomer(customerId);
         if (customer == null) return "Error: Customer ID " + customerId + " not found.";

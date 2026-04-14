@@ -25,8 +25,9 @@ public class Main extends Application {
         Tab roomTab = new Tab("Room Management", buildRoomTab());
         Tab customerTab = new Tab("Customer Management", buildCustomerTab());
         Tab bookingTab = new Tab("Booking & Checkout", buildBookingTab());
+        Tab serviceTab = new Tab("Services & Food", buildServiceTab());
 
-        tabPane.getTabs().addAll(roomTab, customerTab, bookingTab);
+        tabPane.getTabs().addAll(roomTab, customerTab, bookingTab, serviceTab);
 
         // Header
         Label title = new Label("🏨 Hotel Management System");
@@ -361,6 +362,124 @@ public class Main extends Application {
                 sectionLabel("Extra Services"), serviceRow,
                 sep2,
                 sectionLabel("Checkout Customer"), checkoutRow, new HBox(15, btnCheckout),
+                status, output);
+        tab.setPadding(new Insets(10));
+        return tab;
+    }
+
+    // ─────────────────────────── SERVICES & FOOD TAB ───────────────────────────
+    private VBox buildServiceTab() {
+        // Food Order Section
+        Label lRoomNum = new Label("Room Number:");
+        TextField tfRoomNum = new TextField();
+        tfRoomNum.setPromptText("e.g. 101");
+
+        Label lItem = new Label("Food Item:");
+        TextField tfItem = new TextField();
+        tfItem.setPromptText("Enter item name");
+
+        Label lPrice = new Label("Price (₹):");
+        TextField tfPrice = new TextField();
+        tfPrice.setPromptText("e.g. 250");
+
+        GridPane foodForm = new GridPane();
+        foodForm.setHgap(10); foodForm.setVgap(10);
+        foodForm.setPadding(new Insets(10, 15, 5, 15));
+        foodForm.addRow(0, lRoomNum, tfRoomNum);
+        foodForm.addRow(1, lItem, tfItem);
+        foodForm.addRow(2, lPrice, tfPrice);
+
+        Button btnOrder = new Button("🍕 Place Food Order");
+
+        // Room Services Section
+        Separator sep = new Separator();
+        sep.setPadding(new Insets(10, 0, 10, 0));
+
+        Label lMaintRoom = new Label("Room Number:");
+        TextField tfMaintRoom = new TextField();
+        tfMaintRoom.setPromptText("Room for service");
+
+        Button btnClean = new Button("🧹 Request Cleaning (₹100)");
+        Button btnWater = new Button("🚰 Deliver Water (Free)");
+
+        HBox maintRow = new HBox(10, lMaintRoom, tfMaintRoom);
+        maintRow.setPadding(new Insets(5, 15, 5, 15));
+        maintRow.setAlignment(Pos.CENTER_LEFT);
+
+        HBox maintBtns = new HBox(10, btnClean, btnWater);
+        maintBtns.setPadding(new Insets(0, 15, 5, 15));
+
+        TextArea output = new TextArea();
+        output.setEditable(false);
+        output.setPrefHeight(180);
+        output.setStyle("-fx-font-family: monospace;");
+
+        Label status = new Label();
+        status.setPadding(new Insets(5, 15, 0, 15));
+
+        // Events
+        btnOrder.setOnAction(e -> {
+            String roomStr = tfRoomNum.getText().trim();
+            String item = tfItem.getText().trim();
+            String priceStr = tfPrice.getText().trim();
+            if (roomStr.isEmpty() || item.isEmpty() || priceStr.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Input Error", "Please fill all fields.");
+                return;
+            }
+            try {
+                int roomNum = Integer.parseInt(roomStr);
+                double price = Double.parseDouble(priceStr);
+                String msg = hotelManager.addServiceByRoom(roomNum, "Food: " + item, price);
+                boolean success = !msg.startsWith("Error");
+                status.setTextFill(success ? Color.DARKGREEN : Color.RED);
+                status.setText(msg);
+                if (success) { tfItem.clear(); tfPrice.clear(); }
+                output.setText(hotelManager.getBookingSummary());
+            } catch (NumberFormatException ex) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Input", "Room and Price must be numeric.");
+            }
+        });
+
+        btnClean.setOnAction(e -> {
+            String roomStr = tfMaintRoom.getText().trim();
+            if (roomStr.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Input Error", "Enter room number.");
+                return;
+            }
+            try {
+                int roomNum = Integer.parseInt(roomStr);
+                String msg = hotelManager.addServiceByRoom(roomNum, "Room Cleaning", 100.0);
+                boolean success = !msg.startsWith("Error");
+                status.setTextFill(success ? Color.DARKGREEN : Color.RED);
+                status.setText(msg);
+                output.setText(hotelManager.getBookingSummary());
+            } catch (NumberFormatException ex) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Input", "Room number must be numeric.");
+            }
+        });
+
+        btnWater.setOnAction(e -> {
+            String roomStr = tfMaintRoom.getText().trim();
+            if (roomStr.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Input Error", "Enter room number.");
+                return;
+            }
+            try {
+                int roomNum = Integer.parseInt(roomStr);
+                String msg = hotelManager.addServiceByRoom(roomNum, "Water Delivery", 0.0);
+                boolean success = !msg.startsWith("Error");
+                status.setTextFill(success ? Color.DARKGREEN : Color.RED);
+                status.setText(msg);
+                output.setText(hotelManager.getBookingSummary());
+            } catch (NumberFormatException ex) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Input", "Room number must be numeric.");
+            }
+        });
+
+        VBox tab = new VBox(5,
+                sectionLabel("🍕 Food Ordering"), foodForm, new HBox(15, btnOrder),
+                sep,
+                sectionLabel("🧹 Room Maintenance"), maintRow, maintBtns,
                 status, output);
         tab.setPadding(new Insets(10));
         return tab;
