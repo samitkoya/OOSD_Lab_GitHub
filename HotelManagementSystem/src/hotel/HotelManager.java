@@ -56,6 +56,23 @@ public class HotelManager {
         return sb.toString();
     }
 
+    public String filterRooms(String type, double min, double max) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("--- Rooms (%s, ₹%.0f - ₹%.0f) ---\n", 
+            (type == null || type.isEmpty()) ? "Any" : type, min, max));
+        boolean found = false;
+        for (Room r : rooms) {
+            boolean typeMatch = (type == null || type.isEmpty() || r.getRoomType().equalsIgnoreCase(type));
+            boolean priceMatch = (r.getPricePerDay() >= min && r.getPricePerDay() <= max);
+            if (typeMatch && priceMatch) {
+                sb.append(r.toString()).append("\n");
+                found = true;
+            }
+        }
+        if (!found) sb.append("No matching rooms found.");
+        return sb.toString();
+    }
+
     // ─────────────────── CUSTOMER OPERATIONS ───────────────────
 
     public String addCustomer(String id, String name, String contact) {
@@ -71,12 +88,26 @@ public class HotelManager {
     public String getAllCustomers() {
         if (customers.isEmpty()) return "No customers found.";
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%-6s | %-20s | %-12s | %s%n", "ID", "Name", "Contact", "Room"));
+        sb.append(String.format("%-6s | %-20s | %-10s | %s%n", "ID", "Name", "Visits", "Status"));
         sb.append("-".repeat(60)).append("\n");
-        Iterator<Customer> it = customers.iterator();
-        while (it.hasNext()) {
-            sb.append(it.next().toString()).append("\n");
+        for (Customer c : customers) {
+            sb.append(c.toString()).append("\n");
         }
+        return sb.toString();
+    }
+
+    public String searchCustomers(String query) {
+        if (customers.isEmpty()) return "No customers found.";
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- Search Results ---\n");
+        boolean found = false;
+        for (Customer c : customers) {
+            if (c.getCustomerId().equalsIgnoreCase(query) || c.getName().toLowerCase().contains(query.toLowerCase())) {
+                sb.append(c.toString()).append("\n");
+                found = true;
+            }
+        }
+        if (!found) sb.append("No matches for: ").append(query);
         return sb.toString();
     }
 
@@ -120,6 +151,20 @@ public class HotelManager {
                 roomNumber, customer.getName(), booking.getTotalCost());
     }
 
+    public String addServiceCharge(String customerId, String serviceName, double cost) {
+        Customer customer = findCustomer(customerId);
+        if (customer == null) return "Error: Customer ID " + customerId + " not found.";
+        
+        int roomNum = customer.getAllocatedRoomNumber();
+        if (roomNum == 0) return "Error: Customer " + customerId + " has no active booking.";
+
+        Booking booking = bookings.get(roomNum);
+        if (booking == null) return "Error: No booking found for room " + roomNum;
+
+        booking.addService(cost);
+        return String.format("✔ Added %s (₹%.2f) to %s's bill.", serviceName, cost, customer.getName());
+    }
+
     public String checkout(String customerId) {
         Customer customer = findCustomer(customerId);
         if (customer == null) return "Error: Customer ID " + customerId + " not found.";
@@ -129,13 +174,27 @@ public class HotelManager {
         Booking booking = bookings.get(roomNum);
         Room room = findRoom(roomNum);
 
+        double total = (booking != null) ? booking.getTotalCost() : 0;
+        double discount = 0;
+
+        // Loyalty Discount: 10% if 3+ previous visits
+        if (customer.getVisitCount() >= 3) {
+            discount = total * 0.10;
+            total -= discount;
+        }
+
         // Release room
         if (room != null) room.setAvailable(true);
         bookings.remove(roomNum);
         customer.setAllocatedRoomNumber(0);
+        customer.incrementVisits(); // Increment for next stay
 
-        double total = (booking != null) ? booking.getTotalCost() : 0;
-        return String.format("✔ Checkout successful for %s. Bill: ₹%.2f", customer.getName(), total);
+        String msg = String.format("✔ Checkout successful for %s.\n", customer.getName());
+        if (discount > 0) {
+            msg += String.format("Loyalty Discount (10%%) applied: -₹%.2f\n", discount);
+        }
+        msg += String.format("Final bill: ₹%.2f", total);
+        return msg;
     }
 
     public String getBookingSummary() {

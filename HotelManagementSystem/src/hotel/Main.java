@@ -78,9 +78,23 @@ public class Main extends Application {
         HBox buttons = new HBox(10, btnAdd, btnShowAll, btnShowAvail);
         buttons.setPadding(new Insets(0, 15, 10, 15));
 
+        // Filter Section
+        Label lFilterType = new Label("Filter Type:");
+        ComboBox<String> cbFilterType = new ComboBox<>();
+        cbFilterType.getItems().addAll("Any", "Single", "Double", "Deluxe", "Suite");
+        cbFilterType.setValue("Any");
+
+        TextField tfMin = new TextField(); tfMin.setPromptText("Min ₹"); tfMin.setPrefWidth(80);
+        TextField tfMax = new TextField(); tfMax.setPromptText("Max ₹"); tfMax.setPrefWidth(80);
+        Button btnFilter = new Button("🔍 Filter");
+
+        HBox filterBox = new HBox(10, lFilterType, cbFilterType, tfMin, tfMax, btnFilter);
+        filterBox.setPadding(new Insets(5, 15, 10, 15));
+        filterBox.setAlignment(Pos.CENTER_LEFT);
+
         TextArea output = new TextArea();
         output.setEditable(false);
-        output.setPrefHeight(300);
+        output.setPrefHeight(250);
         output.setStyle("-fx-font-family: monospace;");
 
         Label status = new Label();
@@ -109,9 +123,21 @@ public class Main extends Application {
 
         btnShowAll.setOnAction(e -> output.setText(hotelManager.getAllRooms()));
         btnShowAvail.setOnAction(e -> output.setText(hotelManager.getAvailableRooms()));
+        
+        btnFilter.setOnAction(e -> {
+            String type = cbFilterType.getValue();
+            if ("Any".equals(type)) type = "";
+            try {
+                double min = tfMin.getText().isEmpty() ? 0 : Double.parseDouble(tfMin.getText());
+                double max = tfMax.getText().isEmpty() ? Double.MAX_VALUE : Double.parseDouble(tfMax.getText());
+                output.setText(hotelManager.filterRooms(type, min, max));
+            } catch (NumberFormatException ex) {
+                showAlert(Alert.AlertType.ERROR, "Invalid Input", "Prices must be numeric.");
+            }
+        });
 
         Label heading = sectionLabel("Add New Room");
-        VBox tab = new VBox(10, heading, form, buttons, status, output);
+        VBox tab = new VBox(5, heading, form, buttons, sectionLabel("Filter Inventory"), filterBox, status, output);
         tab.setPadding(new Insets(10));
         return tab;
     }
@@ -140,13 +166,22 @@ public class Main extends Application {
         Button btnAdd = new Button("➕ Add Customer");
         Button btnView = new Button("📋 View All Customers");
 
-        Label lRemId = new Label("Remove Customer ID:");
+        Label lSearch = new Label("Search Name/ID:");
+        TextField tfSearch = new TextField();
+        tfSearch.setPromptText("Enter name or ID");
+        Button btnSearch = new Button("🔍 Search");
+
+        Label lRemId = new Label("Remove ID:");
         TextField tfRemId = new TextField();
-        tfRemId.setPromptText("Customer ID to remove");
-        Button btnRemove = new Button("🗑 Remove Customer");
+        tfRemId.setPromptText("ID to remove");
+        Button btnRemove = new Button("🗑 Remove");
 
         HBox addButtons = new HBox(10, btnAdd, btnView);
         addButtons.setPadding(new Insets(0, 15, 5, 15));
+
+        HBox searchRow = new HBox(10, lSearch, tfSearch, btnSearch);
+        searchRow.setPadding(new Insets(0, 15, 5, 15));
+        searchRow.setAlignment(Pos.CENTER_LEFT);
 
         HBox removeRow = new HBox(10, lRemId, tfRemId, btnRemove);
         removeRow.setPadding(new Insets(0, 15, 5, 15));
@@ -160,6 +195,7 @@ public class Main extends Application {
         Label status = new Label();
         status.setPadding(new Insets(5, 15, 0, 15));
 
+        // Events
         btnAdd.setOnAction(e -> {
             String id = tfId.getText().trim();
             String name = tfName.getText().trim();
@@ -176,6 +212,15 @@ public class Main extends Application {
 
         btnView.setOnAction(e -> output.setText(hotelManager.getAllCustomers()));
 
+        btnSearch.setOnAction(e -> {
+            String query = tfSearch.getText().trim();
+            if (query.isEmpty()) {
+                output.setText(hotelManager.getAllCustomers());
+            } else {
+                output.setText(hotelManager.searchCustomers(query));
+            }
+        });
+
         btnRemove.setOnAction(e -> {
             String id = tfRemId.getText().trim();
             if (id.isEmpty()) {
@@ -190,7 +235,7 @@ public class Main extends Application {
         });
 
         Label heading = sectionLabel("Customer Records");
-        VBox tab = new VBox(10, heading, form, addButtons, removeRow, status, output);
+        VBox tab = new VBox(10, heading, form, addButtons, searchRow, removeRow, status, output);
         tab.setPadding(new Insets(10));
         return tab;
     }
@@ -219,13 +264,31 @@ public class Main extends Application {
 
         Button btnBook = new Button("🛎 Book Room");
 
+        // Service section
+        Separator sep1 = new Separator();
+        sep1.setPadding(new Insets(5, 0, 5, 0));
+        
+        Label lSvcCustId = new Label("Customer ID:");
+        TextField tfSvcCustId = new TextField();
+        tfSvcCustId.setPromptText("Customer ID");
+        
+        ComboBox<String> cbSvc = new ComboBox<>();
+        cbSvc.getItems().addAll("Room Service - ₹500", "Laundry - ₹300", "Spa - ₹1500");
+        cbSvc.setPromptText("Select Service");
+        
+        Button btnAddSvc = new Button("➕ Add Service");
+
+        HBox serviceRow = new HBox(10, lSvcCustId, tfSvcCustId, cbSvc, btnAddSvc);
+        serviceRow.setPadding(new Insets(5, 15, 5, 15));
+        serviceRow.setAlignment(Pos.CENTER_LEFT);
+
         // Checkout section
-        Separator sep = new Separator();
-        sep.setPadding(new Insets(10, 0, 10, 0));
+        Separator sep2 = new Separator();
+        sep2.setPadding(new Insets(5, 0, 5, 0));
 
         Label lChkCustId = new Label("Customer ID:");
         TextField tfChkCustId = new TextField();
-        tfChkCustId.setPromptText("Customer ID to checkout");
+        tfChkCustId.setPromptText("ID to checkout");
 
         HBox checkoutRow = new HBox(10, lChkCustId, tfChkCustId);
         checkoutRow.setPadding(new Insets(5, 15, 5, 15));
@@ -233,15 +296,9 @@ public class Main extends Application {
 
         Button btnCheckout = new Button("🚪 Checkout");
 
-        HBox bookBtns = new HBox(10, btnBook);
-        bookBtns.setPadding(new Insets(0, 15, 5, 15));
-
-        HBox checkBtns = new HBox(10, btnCheckout);
-        checkBtns.setPadding(new Insets(0, 15, 5, 15));
-
         TextArea output = new TextArea();
         output.setEditable(false);
-        output.setPrefHeight(200);
+        output.setPrefHeight(180);
         output.setStyle("-fx-font-family: monospace;");
 
         Label status = new Label();
@@ -269,6 +326,21 @@ public class Main extends Application {
             }
         });
 
+        btnAddSvc.setOnAction(e -> {
+            String custId = tfSvcCustId.getText().trim();
+            String svcInfo = cbSvc.getValue();
+            if (custId.isEmpty() || svcInfo == null) {
+                showAlert(Alert.AlertType.WARNING, "Input Error", "Select customer and service.");
+                return;
+            }
+            String svcName = svcInfo.split(" - ")[0];
+            double cost = Double.parseDouble(svcInfo.split("₹")[1]);
+            String msg = hotelManager.addServiceCharge(custId, svcName, cost);
+            status.setTextFill(msg.startsWith("Error") ? Color.RED : Color.DARKGREEN);
+            status.setText(msg);
+            output.setText(hotelManager.getBookingSummary());
+        });
+
         btnCheckout.setOnAction(e -> {
             String custId = tfChkCustId.getText().trim();
             if (custId.isEmpty()) {
@@ -283,13 +355,12 @@ public class Main extends Application {
             output.setText(hotelManager.getBookingSummary());
         });
 
-        Label bookHeading = sectionLabel("Book a Room");
-        Label checkHeading = sectionLabel("Checkout Customer");
-
         VBox tab = new VBox(5,
-                bookHeading, bookForm, bookBtns,
-                sep,
-                checkHeading, checkoutRow, checkBtns,
+                sectionLabel("Book a Room"), bookForm, new HBox(15, btnBook),
+                sep1,
+                sectionLabel("Extra Services"), serviceRow,
+                sep2,
+                sectionLabel("Checkout Customer"), checkoutRow, new HBox(15, btnCheckout),
                 status, output);
         tab.setPadding(new Insets(10));
         return tab;
